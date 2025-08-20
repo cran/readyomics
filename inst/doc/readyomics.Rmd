@@ -1,0 +1,475 @@
+---
+title: "readyomics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{readyomics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+readyomics streamlines single- or multi-omics data analysis pipelines.
+
+The starting input should be a pre-processed raw omics data matrix (e.g. gene counts, 
+metabolites or protein abundances, etc.) and a table of related sample information 
+to be used for additional processing and statistical analysis.
+
+readyomics splits processing and statistical analysis steps into different functions.
+This has the following advantages:
+
+- **Aligns with best practice in data science**
+  - Avoiding "all-in-one" black-box functions.
+  - Processing functions (`process_ngs()`, `process_ms()`) prepare data.
+  - Analysis and visualization functions (`dana()`, `permanova()` and `ready_plots()`) 
+  use data ready for modeling.
+- **Transparency and troubleshooting**
+  - Makes it easy to pinpoint where things go wrong (e.g., transformation *vs.* model error).
+  - Encourages users to inspect data at each stage.
+- **Supports nonlinear or custom pipelines**
+  - Externally-formatted data  ⟶  statistical analysis with readyomics.
+  - Process raw data with readyomics  ⟶  use other downstream analysis methods.
+- **Scalability**
+  - `dana()` can be set up to run in parallel through `future::plan()`.
+  - `dana` results from multiple omics can be joined, using `platform` and `assay`
+    to distinguish results from each dataset.
+  - Effortless `dana` results analysis by piping `adjust_pval()`, `ready_plots()`,
+    and (optionally) also `add_feat_name()` or `add_taxa()`.
+- **Future package extensions**
+  - New pre-processing strategies.
+  - New analysis methods.
+  
+# Example
+The following example shows the overall workflow of readyomics.
+
+The example data is a 16S rRNA gene sequencing metataxonomics dataset from 
+human fecal samples. They are a subset of 29 samples from a T2DM prospective 
+cohort screened for MASLD:
+
+> Forlano, R.\*, Martinez-Gili, L.\*, Takis, P., Miguens-Blanco, J., Liu, T., 
+Triantafyllou, E., … Manousou, P. (2024). Disruption of gut barrier integrity and 
+host–microbiome interactions underlie MASLD severity in patients with type-2 diabetes mellitus. 
+Gut Microbes, 16(1). https://doi.org/10.1080/19490976.2024.2304157
+
+Example input files can be found in the `inst/extdata` folder of the readyomics source, 
+and can be imported using `base::system.file()` command as shown below in 
+[Import and inspect data].
+
+**Note**: this example is meant to showcase basic package usage. It is not meant 
+to provide guidelines on suitable study-specific choices for data processing and 
+analysis.
+
+## Installation
+```{r, eval = FALSE}
+install.packages("readyomics")
+```
+
+## Load the package
+```{r setup}
+library(readyomics)
+```
+
+## Import and inspect data
+```{r}
+# Raw matrix of ASV counts
+asv_counts <- read.csv(system.file("extdata", "asv_raw_counts.csv", package = "readyomics"), 
+                       check.names = FALSE, 
+                       row.names = 1)
+
+# Taxonomy table
+taxa <- read.csv(system.file("extdata", "taxonomy.csv", package = "readyomics"), 
+                 check.names = FALSE, 
+                 row.names = 1)
+
+# Sample data
+sample_data <- read.csv(system.file("extdata", "sample_data.csv", package = "readyomics"), 
+                        check.names = FALSE, 
+                        row.names = 1)
+```
+
+```{r, eval = FALSE}
+head(asv_counts)
+```
+<div style="overflow-x: auto;">
+```{r, echo = FALSE}
+knitr::kable(head(asv_counts))
+```
+</div>
+```{r, eval = FALSE}
+head(taxa)
+```
+<div style="overflow-x: auto;">
+```{r, echo = FALSE}
+knitr::kable(head(taxa))
+```
+</div>
+```{r, eval = FALSE}
+head(sample_data)
+```
+
+```{r, echo = FALSE}
+knitr::kable(head(sample_data))
+```
+
+## Format sample_data
+`sample_data` must include a column named **`sample_id`** with unique IDs for each sample
+in the study. For longitudinal studies, `sample_id` still needs to be unique, therefore
+a column such as `subject_id` can then be used to indicate samples coming from the
+same individual.
+
+The omics `X` data matrix must also use the same `sample_id` labels as row names, so that 
+they can be matched before analysis. readyomics always checks sample ID matching.
+
+In addition, categorical variables must be set as factors for downstream statistical analyses.
+```{r}
+sample_data <- sample_data |>
+  dplyr::mutate(sample_id = rownames(sample_data),
+         groups_liver = factor(groups_liver, levels = c("FL", "FL_HS")),
+         sex = factor(sex),
+         PPI = factor(PPI),
+         smoking = factor(smoking),
+         alcohol_imp = factor(alcohol_imp))
+```
+
+## Process data using `process_ngs()`
+The choice of processing function will depend on the type of omics being analysed. 
+We will use `process_ngs()` in the example, as it is suitable for metataxonomics. 
+
+See also `process_ms()` if you need to process mass spectrometry (MS) data like 
+metabolomics or proteomics. `process_ms()` is compatible with nuclear magnetic 
+resonance spectroscopy (NMR) data, although with limited processing options.
+```{r}
+# Samples as rows required for process_ngs
+asv_counts <- t(asv_counts)
+
+# Process asv_counts data
+asv_ready <- process_ngs(X = asv_counts, 
+                         sample_data = sample_data, 
+                         taxa_table = taxa, 
+                         normalise = "none",
+                         transform = "clr", 
+                         eco_phyloseq = FALSE)
+```
+When `verbose = TRUE` (the default) we can see that `process_ngs()` prints some
+useful information. For example, that a phylogenetic tree has not been provided,
+that 1 sample has been removed due to falling under the default 500 reads threshold
+for sequencing depth, and that 372 features were kept after filtering for 10 % prevalence.
+
+`process_ngs()` generates a list object that contains:
+
+- The processed matrix `X_processed` (in this case is clr-transformed).
+- The matched sample_data (`sdata_final`).
+- A `phyloseq_raw` object that contains phyloseq objects for all taxonomic ranks 
+(see `build_phyloseq()` for more information). 
+- A `NULL` `phyloseq_eco` object, because counts have not been adjusted by microbial load.
+Counts adjusted by microbial load are no longer compositional and they are referred as
+"ecosystem counts", hence the "_eco" suffix.
+
+We will see how to apply the processed data for common omics analysis.
+
+## PCA visualisation with `mva()`
+```{r}
+#| fig.alt: >
+#|  Figure panel with 4 plots, principal components variance percentage (upper-left),
+#|  observation diagnostics for outliers (upper-right), scores plot (lower-left),
+#|  loadings plot (lower right).
+pca <- mva(X = asv_ready$X_processed, 
+           sample_data = asv_ready$sdata_final, 
+           group_colour = "groups_liver", 
+           plot_title = "Beta diversity (Aitchison)")
+```
+
+By default, `mva()` will show a PCA diagnostics plot, which is very useful to
+examine potential outliers, batch effects and clusters related to the groups of
+interest.
+
+In addition to storing the `ropls::opls()` object, `mva()` generates a publication-ready
+scores plot, in this case color-coded by the variable `groups_liver` as we indicated:
+```{r}
+#| fig.alt: >
+#|  Scores plot color-coded by groups_liver class.
+pca$scores_plot
+```
+
+Because the plot is generated using ggplot2, it can be further tweaked using ggplot2
+functions before export.
+
+## Permutational analysis of variance with `permanova()`
+PERMANOVA is quite popular in microbiome datasets to inspect differences in beta
+diversity, but it can also be applied to any type of omics data.
+
+By default, the function sets parameter `indenpendent = TRUE`, meaning `permanova()` 
+also calculates the overall variance for each covariable in the model independently, 
+in addition to the `vegan::adonis2()` output.
+```{r}
+# Define model
+rhs_model <- ~ groups_liver + alcohol_imp + sex + age + PPI + smoking
+
+# Run PERMANOVA
+pova <- permanova(X = asv_ready$X_processed, 
+                  sample_data = asv_ready$sdata_final,
+                  formula_rhs = rhs_model, 
+                  platform = "ngs", 
+                  assay = "Taxonomy", 
+                  seed = 165)
+```
+We see a warning and related verbose message (when `verbose = TRUE`; the default) 
+about permutation parameters being used for all the variables. This is because 
+you can set up specific permutation control parameters for each covariable with
+`perm_control`. This is particularly useful for example in longitudinal studies,
+where you might need to apply permutation blocks according to certain variables. 
+In our case, we are good with the default 999 unrestricted random permutations, 
+so we can ignore the warning and verbose. See `permanova()` for more information.
+
+The output is a list that contains the distance matrix and permutation matrix used, 
+as well as two tables of results `permanova_joint`, which is the default 
+`vegan::adonis2()` result, and `permanova_indep`, when `independent = TRUE`.
+```{r, eval = FALSE}
+pova$permanova_joint
+```
+<div style="overflow-x: auto;">
+```{r, echo = FALSE}
+knitr::kable(pova$permanova_joint)
+```
+</div>
+```{r, eval = FALSE}
+pova$permanova_indep
+```
+<div style="overflow-x: auto;">
+```{r, echo = FALSE}
+knitr::kable(pova$permanova_indep)
+```
+</div>
+## <u>D</u>ifferential <u>ANA</u>lysis with `dana()`
+A common analysis goal with omics data is to try and find omic features associated 
+with traits of interest. `dana()` is readyomics function for differential analysis.
+At present, `dana()` supports linear regressions with `stats::lm()` and linear 
+mixed effects models with `lme4::lmer()`.
+`dana()` main strengths are:
+
+- Full flexibility on model formula (random effects, interaction terms).
+- Likelihood ratio tests (LRT) in addition to coefficient P values.
+
+  - LRT is especially recommended for small studies (approx. below 100 samples).
+  - Any formula terms can be tested with LRT (interaction terms, random effects).
+  - Several terms can be tested at once (e.g. `term_LRT = c("sex" , "BMI", "1 | country")`).
+- Easy set up to run in parallel using `future::plan()` - user has full control, 
+  allowing good scalability for big data.
+- Toggable progress bar with progressr.
+
+We will fit a linear regression with the main variables in our dataset:
+```{r}
+# future::plan(multisession, workers = 4) # For running 4 processes in parallel
+# progressr::handlers(global = TRUE) # To show progress bar
+dana_asv <- dana(X = asv_ready$X_processed, 
+                 sample_data = asv_ready$sdata_final,
+                 formula_rhs = rhs_model, 
+                 term_LRT = "groups_liver",
+                 platform = "ngs")
+# plan(sequential) # To disable parallel processing
+```
+We first see a warning message suggesting to use parallel computing due to the `X` 
+matrix having more than 100 features. However this can be ignored as `stats::lm()`
+is very quick anyway.
+
+The `dana()` function generates a `dana` object including the input data used,
+and the publication-ready `fit` table summarizing the main model results for each feature
+analysed (`"feat_id"` column).
+```{r, eval = FALSE}
+head(dana_asv$fit)
+```
+<div style="overflow-x: auto;">
+```{r, echo = FALSE}
+knitr::kable(head(dana_asv$fit))
+```
+</div>
+
+If working with multiple omics, is useful to also specify `platform` and `assay`
+columns for seamless downstream omics results integration.
+
+When one or more terms are specified for likelihood ratio testing with `term_LRT`, 
+`dana` also includes the `lrt` table with the LRT results. In our case we used LRT 
+to test `groups_liver`.
+```{r, eval = FALSE}
+head(dana_asv$lrt)
+```
+<div style="overflow-x: auto;">
+```{r, echo = FALSE}
+knitr::kable(head(dana_asv$lrt))
+```
+</div>
+
+### Adjusting for multiple comparisons with `adjust_pval()`
+We leverage R base pipes to conveniently add adjusted P values to the `dana`
+object results with `adjust_pval()`.
+```{r}
+dana_asv <- dana_asv |>
+  adjust_pval(padj_by = "terms", 
+              padj_method = "BH", 
+              padj_method_LRT = "BH")
+```
+The `fit` table now has new columns with the adjusted P values. Because we chose 
+to adjust by terms in the `fit` table (`padj_by = "terms"`), this will adjust 
+each covariable P value individually. We see more than one column of adjusted P 
+values with the format `padj_[`*`padj_method`*`]_[`*`term`*`]` (e.g. `"padj_BH_sex2"`).
+
+The alternative would be (`padj_by = "all"`) in which all nominal P values in `fit`
+will be adjusted together. In this case, a single column would be added to `fit`, 
+with the format `padj_[`*`padj_method`*`]`.
+
+If a formula fixed term was also tested via LRT, `adjust_pval()` will also add
+the adjusted LRT P value to the `fit` table. LRT P values have the `"_LRT"` suffix 
+(see last column `"padj_BH_groups_liver_LRT"`).
+```{r, eval = FALSE}
+head(dana_asv$fit)
+```
+<div style="overflow-x: auto;">
+```{r, echo = FALSE}
+knitr::kable(head(dana_asv$fit))
+```
+</div>
+
+Similarly, we can inspect the `lrt` table with the added adjusted P values.
+```{r, eval = FALSE}
+head(dana_asv$lrt)
+```
+<div style="overflow-x: auto;">
+```{r, echo = FALSE}
+knitr::kable(head(dana_asv$lrt))
+```
+</div>
+
+While a single adjustment method should be chosen *a priori*, it is possible to 
+add more than one P value adjustment method (e.g. `padj_method = c("BH", "storey")`, 
+`padj_method_LRT = c("BH", "bonferroni")`). See `adjust_pval()` for more information.
+
+### Adding feature labels with `add_feat_name()` or `add_taxa()`
+Original labels for some omics data can contain non-alphanumeric characters and
+symbols that could be problematic to fit `dana()` models. `process_ms()` allows
+to rename features as `"feat_1"`, `"feat_2"`, and so on, by setting `rename_feat = TRUE`,
+while storing the original labels.
+
+`add_feat_name()` can then be used to add the original labels to the `dana` object
+before plotting significant results.
+
+Similarly, for metataxonomics and metagenomics data, it is more interesting to read the 
+genus/species/strain of origin rather than a cryptic `"ASV1"`. In this case, we would
+use `add_taxa()`. Which also adds the corresponding higher hierarchy taxa names.
+```{r}
+dana_asv <- dana_asv |>
+  add_taxa(taxa_table = taxa, 
+           taxa_rank = "asv")
+```
+We can see that various columns have been added to the `fit` table. Because `taxa_rank = "asv"`, 
+the column for the feature label `taxon_name` by default adds the species (if provided) 
+or the genus name to the ASV ID, collapsed by "_", a format quite common in publication plots.
+```{r, eval = FALSE}
+head(dana_asv$fit)
+```
+<div style="overflow-x: auto;">
+```{r, echo = FALSE}
+knitr::kable(head(dana_asv$fit))
+```
+</div>
+
+### Visualise results with `ready_plots()`
+We can pipe `ready_plots()` to the previous command, or skip the previous step 
+and directly apply `ready_plots()` to the `dana` object to explore the results 
+with the default feature IDs (`"feat_id"` column).
+
+`ready_plots()` automatically generates and stores the most commonly used 
+publication-ready plots:
+
+- Differential analysis significant coefficients (volcano, dotplot, heatmap - capped at 50 features),
+- Significant features abundance (capped at the 10 most significant, but plots for 
+  specific features can be requested with `X_colnames` parameter).
+```{r, error = TRUE}
+# Generates error due to lack of significant features:
+dana_asv <- dana_asv |>
+  ready_plots(term_name = "groups_liver", # Formula fit term of interest
+              pval_match = "groups_liver_LRT", # LRT adjusted P values will be used
+              sdata_var = "groups_liver", # Grouping variable for individual feature plots
+              group_colours = c(FL = "#4daf4a", # Optional color customization
+                                FL_HS = "#377eb8"))
+```
+In our example, no features were significant after multiple comparison correction.
+This prompts an error message from `ready_plots()` which halts execution.
+This is somewhat expected as we are using a small portion of the original dataset as a toy example.
+
+A formal analysis would end here, concluding that the null hypothesis could not be rejected.
+In our case, we will use the nominal P value to showcase the `ready_plots()` functionality.
+```{r}
+dana_asv <- dana_asv |>
+  ready_plots(term_name = "groups_liver",
+              pval_match = "Pr", # Nominal P value for illustration purposes
+              sdata_var = "groups_liver", 
+              group_colours = c(FL = "#4daf4a", 
+                                FL_HS = "#377eb8"))
+```
+When `verbose = TRUE` (the default) `ready_plots()` displays the total number of
+significant features at the chosen P value threshold.
+We can inspect all plots at once by simply running:
+```{r}
+#| fig.alt: >
+#|  Plots for model coefficients (volcano plot, heatmap, points) and plots for 
+#|  significant features across study groups (boxplot, violin and ridges plots).
+dana_asv$plots
+```
+
+Because plots are generated with ggplot2, they can easily be further customized.
+
+## Bonus (microbiome): `dana()` for alpha diversity
+```{r}
+# Compute alpha diversity measures for the ASV phyloseq object
+alpha <- phyloseq::estimate_richness(asv_ready$phyloseq_raw$asv) |>
+  dplyr::select(-matches("ace|chao|fisher")) |>
+  scale()
+
+# Calculate alpha diversity differences among groups with dana()
+dana_alpha <- dana(X = alpha, 
+                   sample_data = asv_ready$sdata_final,
+                   formula_rhs = rhs_model, 
+                   term_LRT = "groups_liver",
+                   platform = "ngs")
+```
+
+## Bonus (microbiome): `dana()` for higher taxonomic ranks
+The following example shows only the code for genus rank, but this code could be easily
+wrapped into a function that iterates across all taxa ranks to analyse all at once,
+using parallel computation with `future::plan()`.
+```{r}
+# CLR-transform genus rank counts table
+genus_ready <- process_ngs(X = as.data.frame(asv_ready$phyloseq_raw$genus@otu_table), 
+                           sample_data = asv_ready$sdata_final, 
+                           taxa_table = taxa, 
+                           normalise = "none",
+                           transform = "clr",
+                           raw_phyloseq = FALSE,
+                           eco_phyloseq = FALSE,
+                           verbose = FALSE)
+
+# Run dana
+dana_genus <- dana(X = genus_ready$X_processed, 
+                   sample_data = genus_ready$sdata_final,
+                   formula_rhs = rhs_model, 
+                   term_LRT = "groups_liver",
+                   platform = "ngs") |>
+  adjust_pval(padj_by = "terms", 
+              padj_method = "BH", 
+              padj_method_LRT = "BH") |>
+  add_taxa(taxa_table = taxa, 
+           taxa_rank = "genus") |>
+  ready_plots(term_name = "groups_liver",
+              pval_match = "Pr", # Nominal P value for illustration purposes
+              sdata_var = "groups_liver",
+              group_colours = c(FL = "#4daf4a",
+                                FL_HS = "#377eb8"))
+
+# Inspect plots
+dana_genus$plots
+```
