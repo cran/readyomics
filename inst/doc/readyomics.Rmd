@@ -12,6 +12,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+if (!requireNamespace("phyloseq", quietly = TRUE)) {
+  knitr::opts_chunk$set(eval = FALSE)
+}
 ```
 
 readyomics streamlines single- or multi-omics data analysis pipelines.
@@ -155,10 +159,11 @@ asv_ready <- process_ngs(X = asv_counts,
                          transform = "clr", 
                          eco_phyloseq = FALSE)
 ```
-When `verbose = TRUE` (the default) we can see that `process_ngs()` prints some
-useful information. For example, that a phylogenetic tree has not been provided,
-that 1 sample has been removed due to falling under the default 500 reads threshold
-for sequencing depth, and that 372 features were kept after filtering for 10 % prevalence.
+When `verbose = TRUE` we can see that some useful information is printed in the 
+console (see `process_ngs()` for all settings and parameters options). For example, 
+that a phylogenetic tree has not been provided, that 1 sample has been removed due 
+to falling under the default 500 reads threshold for sequencing depth, and that 
+372 features were kept after filtering for 10 % prevalence.
 
 `process_ngs()` generates a list object that contains:
 
@@ -173,7 +178,7 @@ Counts adjusted by microbial load are no longer compositional and they are refer
 We will see how to apply the processed data for common omics analysis.
 
 ## PCA visualisation with `mva()`
-```{r}
+```{r, eval = requireNamespace("ropls", quietly = TRUE)}
 #| fig.alt: >
 #|  Figure panel with 4 plots, principal components variance percentage (upper-left),
 #|  observation diagnostics for outliers (upper-right), scores plot (lower-left),
@@ -190,7 +195,7 @@ interest.
 
 In addition to storing the `ropls::opls()` object, `mva()` generates a publication-ready
 scores plot, in this case color-coded by the variable `groups_liver` as we indicated:
-```{r}
+```{r, eval = requireNamespace("ropls", quietly = TRUE)}
 #| fig.alt: >
 #|  Scores plot color-coded by groups_liver class.
 pca$scores_plot
@@ -399,7 +404,8 @@ dana_asv <- dana_asv |>
 ```
 In our example, no features were significant after multiple comparison correction.
 This prompts an error message from `ready_plots()` which halts execution.
-This is somewhat expected as we are using a small portion of the original dataset as a toy example.
+This is somewhat expected as we are using a small portion of the original dataset 
+as a toy example.
 
 A formal analysis would end here, concluding that the null hypothesis could not be rejected.
 In our case, we will use the nominal P value to showcase the `ready_plots()` functionality.

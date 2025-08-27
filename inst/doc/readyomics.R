@@ -4,6 +4,10 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
+if (!requireNamespace("phyloseq", quietly = TRUE)) {
+  knitr::opts_chunk$set(eval = FALSE)
+}
+
 ## ----eval = FALSE-------------------------------------------------------------
 # install.packages("readyomics")
 
@@ -65,13 +69,13 @@ asv_ready <- process_ngs(X = asv_counts,
                          transform = "clr", 
                          eco_phyloseq = FALSE)
 
-## -----------------------------------------------------------------------------
+## ----eval = requireNamespace("ropls", quietly = TRUE)-------------------------
 pca <- mva(X = asv_ready$X_processed, 
            sample_data = asv_ready$sdata_final, 
            group_colour = "groups_liver", 
            plot_title = "Beta diversity (Aitchison)")
 
-## -----------------------------------------------------------------------------
+## ----eval = requireNamespace("ropls", quietly = TRUE)-------------------------
 pca$scores_plot
 
 ## -----------------------------------------------------------------------------

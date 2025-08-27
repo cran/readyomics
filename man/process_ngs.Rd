@@ -105,6 +105,7 @@ and optionally returns intermediate processing steps.
 }
 }
 \examples{
+if (requireNamespace("phyloseq", quietly = TRUE)) {
 mock_X <- matrix(sample(0:1000, 25, replace = TRUE),
                  nrow = 5,
                  dimnames = list(paste0("sample", 1:5),
@@ -133,6 +134,7 @@ result <- process_ngs(
   transform = "none",
   verbose = FALSE
   )
+}
 
 }
 \references{

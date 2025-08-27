@@ -88,6 +88,7 @@
 #' 551(7681), 507–511. \doi{10.1038/nature24460}
 #'
 #' @examples
+#' if (requireNamespace("phyloseq", quietly = TRUE)) {
 #' mock_X <- matrix(sample(0:1000, 25, replace = TRUE),
 #'                  nrow = 5,
 #'                  dimnames = list(paste0("sample", 1:5),
@@ -116,6 +117,7 @@
 #'   transform = "none",
 #'   verbose = FALSE
 #'   )
+#' }
 #'
 #' @export
 process_ngs <- function(X, sample_data, taxa_table = NULL,

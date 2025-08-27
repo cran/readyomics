@@ -27,6 +27,7 @@
 #'
 #' @examples
 #' # PCA
+#' if (requireNamespace("ropls", quietly = TRUE)) {
 #' set.seed(123)
 #' mock_X <- matrix(rnorm(40),
 #'                  nrow = 10,
@@ -54,6 +55,7 @@
 #'
 #' # PCA plot
 #' result$scores_plot
+#' }
 #'
 #' @importFrom rlang .data
 #'

@@ -47,6 +47,7 @@ The analysis type depends on the \code{...} arguments passed to \code{ropls::opl
 }
 \examples{
 # PCA
+if (requireNamespace("ropls", quietly = TRUE)) {
 set.seed(123)
 mock_X <- matrix(rnorm(40),
                  nrow = 10,
@@ -74,6 +75,7 @@ result <- mva(
 
 # PCA plot
 result$scores_plot
+}
 
 }
 \seealso{

@@ -51,6 +51,7 @@ If very long strings are detected as feature IDs in \code{X} matrix or \code{tax
 as this could significantly slow down computation and increase memory usage.
 }
 \examples{
+if (requireNamespace("phyloseq", quietly = TRUE)) {
 mock_X <- matrix(c(10, 0, 5, 3, 1, 7),
                  nrow = 2, byrow = TRUE,
                  dimnames = list(c("sample1", "sample2"),
@@ -72,6 +73,7 @@ phyloseq_ready <- build_phyloseq(X = mock_X,
                                  taxa_table = mock_taxa_table,
                                  taxa_in_rows = FALSE,
                                  verbose = FALSE)
+}
 
 }
 \seealso{

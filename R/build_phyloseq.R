@@ -33,6 +33,7 @@
 #' @seealso [phyloseq::phyloseq()] for further details on phyloseq objects.
 #'
 #' @examples
+#' if (requireNamespace("phyloseq", quietly = TRUE)) {
 #' mock_X <- matrix(c(10, 0, 5, 3, 1, 7),
 #'                  nrow = 2, byrow = TRUE,
 #'                  dimnames = list(c("sample1", "sample2"),
@@ -54,6 +55,7 @@
 #'                                  taxa_table = mock_taxa_table,
 #'                                  taxa_in_rows = FALSE,
 #'                                  verbose = FALSE)
+#' }
 #'
 #' @export
 build_phyloseq <- function(X, sample_data, taxa_table = NULL,

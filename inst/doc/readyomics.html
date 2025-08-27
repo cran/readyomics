@@ -900,12 +900,13 @@ spectroscopy (NMR) data, although with limited processing options.</p>
 <span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; 28 samples found in common between 28 rows in &#39;X&#39; and 29 rows in &#39;sample_data&#39;.</span></span>
 <span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; 372 out of 2237 features were kept after 10 % prevalence filter.</span></span>
 <span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; Zeros will be imputed with &#39;zCompositions::cmultRepl()&#39; prior to clr-transformation.</span></span></code></pre></div>
-<p>When <code>verbose = TRUE</code> (the default) we can see that
-<code>process_ngs()</code> prints some useful information. For example,
-that a phylogenetic tree has not been provided, that 1 sample has been
-removed due to falling under the default 500 reads threshold for
-sequencing depth, and that 372 features were kept after filtering for 10
-% prevalence.</p>
+<p>When <code>verbose = TRUE</code> we can see that some useful
+information is printed in the console (see <code>process_ngs()</code>
+for all settings and parameters options). For example, that a
+phylogenetic tree has not been provided, that 1 sample has been removed
+due to falling under the default 500 reads threshold for sequencing
+depth, and that 372 features were kept after filtering for 10 %
+prevalence.</p>
 <p><code>process_ngs()</code> generates a list object that contains:</p>
 <ul>
 <li>The processed matrix <code>X_processed</code> (in this case is
