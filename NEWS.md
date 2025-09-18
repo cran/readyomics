@@ -1,3 +1,7 @@
+# readyomics 0.1.2
+
+- `draw_quantiles` removed from `ggplot2::geom_violin()`
+
 # readyomics 0.1.1
 
 - Minor fixes in documentation for CRAN macOS flavor checks.

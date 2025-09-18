@@ -619,7 +619,6 @@ plot_feat <- function(p_table, plot_type = c("scatter", "boxplot", "violin"),
   } else if (plot_type == "violin") {
     p <- p +
       ggplot2::geom_violin(ggplot2::aes(fill = .data[[sdata_var]]),
-                           draw_quantiles = TRUE,
                            linewidth = 0.1,
                            scale = "width",
                            show.legend = FALSE) +
