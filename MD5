@@ -1,7 +1,7 @@
-8f7a27e1c43170eb527e235537d16579 *DESCRIPTION
+8a62259db77e2c69fc1cf110c07149b0 *DESCRIPTION
 75185ae9b807a90e9aa16a0874aaa22a *LICENSE
 bcf4cbd320a5c231a618ef6791012863 *NAMESPACE
-1aa65edc8698dca622c5316d481c5277 *NEWS.md
+a36f5e4d7ffebc8c27cde92f88e9ae4a *NEWS.md
 39a3eea2cd052904637a780d4769ebfb *R/build_phyloseq.R
 679573c8309cd354178c601963162e05 *R/dana.R
 356baaf661e1b4ee3f249e7642d71a65 *R/mva.R
@@ -9,7 +9,7 @@ c89fca558dc6a6a36147d403c6814036 *R/permanova.R
 99c2b6599dd5ecc117286f85846da988 *R/process_ms.R
 b50cca99538fbb9bf0499e6b80cfc870 *R/process_ngs.R
 aba56c4ff0ddc52490ed232f8680b857 *R/ready_plots.R
-b94eca2e565c7a129836a777a7d472e9 *R/utils_analysis.R
+8f7aaa4115a0d3ba4c121b51f0bf3e9e *R/utils_analysis.R
 0ed36ea445b18f645f15bad4c28fea93 *R/utils_processing.R
 45c070eecc6bd6c4045da88106c2bd7c *README.md
 9d40159f50a5fc9949cbfe95a2884126 *build/partial.rdb
@@ -22,7 +22,7 @@ a26152181c4e77f661f5fea365520d12 *inst/extdata/sample_data.csv
 b78d53a628acb0cae7bf721a9ec058d9 *inst/extdata/taxonomy.csv
 907b68a804c82b7b5d8cfef276073f7a *man/add_feat_name.Rd
 1bab075cb65b878db731e6cc4cfbbea8 *man/add_taxa.Rd
-4d27519f1a6658462de949e7f865ceea *man/adjust_pval.Rd
+0955ce1d3e52c5c4344449b747d58ff6 *man/adjust_pval.Rd
 aedc7a4eed9b606c1d9026c32d82597a *man/build_phyloseq.Rd
 1792370909e98b725e7c6a027f5ae632 *man/dana.Rd
 9cb484e6c5f711598c8283fcb59a39c4 *man/figures/logo.png
@@ -32,7 +32,7 @@ d6abdc1b2d0e7dbd69c1ea772c201f46 *man/permanova.Rd
 bd39c96c0cff32af7541f9d321cafc82 *man/process_ngs.Rd
 aa3aaa3876573797e94afd2af72dcfd0 *man/ready_plots.Rd
 77a46c951693f5847c444d03be3f9717 *tests/testthat.R
-7dc7f3fca7c672e96ff79b33318920fd *tests/testthat/test-adjust_pval.R
+5dedca256debebce9025aaba93b401c3 *tests/testthat/test-adjust_pval.R
 ec58cddba9f9226a73e240b7ccc373f3 *tests/testthat/test-build_phyloseq.R
 e626f394492e94407339550096e919dd *tests/testthat/test-dana.R
 63a2182ab6fb4096b7116a4c23360870 *tests/testthat/test-mva.R

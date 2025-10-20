@@ -7,12 +7,13 @@
 adjust_pval(
   dana_obj,
   padj_by = c("all", "terms"),
-  padj_method = c("BH", "bonferroni", "BY", "fdr", "hochberg", "holm", "hommel", "IHW",
-    "storey"),
-  padj_method_LRT = c("BH", "bonferroni", "BY", "fdr", "hochberg", "holm", "hommel",
-    "IHW", "storey"),
-  verbose = TRUE,
-  ...
+  padj_method = NULL,
+  padj_method_LRT = NULL,
+  ihw_covar = NULL,
+  ihw_covar_id = NULL,
+  ihw_args = list(),
+  storey_args = list(),
+  verbose = TRUE
 )
 }
 \arguments{
@@ -28,9 +29,18 @@ coefficient tests. Defaults to \code{"BH"}.}
 LRT tests. Defaults to \code{"BH"}. P-values from LRT tests will always be adjusted
 independently for each LRT term.}
 
-\item{verbose}{Logical. Whether to print informative messages. Defaults to \code{TRUE}.}
+\item{ihw_covar}{Data frame containing covariable(s) used for \code{IHW::ihw()}. Must contain
+a \code{"feat_id"} column, matching \code{dana} object \code{"feat_id"} labels.}
 
-\item{...}{Additional arguments passed to \code{IHW::ihw()} or \code{qvalue::qvalue()}.}
+\item{ihw_covar_id}{Character string. Column name in \code{ihw_covar} used as \code{covariates}
+argument in \code{IHW::ihw()}.}
+
+\item{ihw_args}{Named list. Additional arguments passed to \code{IHW::ihw()}. Do not provide
+\code{covariates} argument, as it will be obtained from \code{ihw_covar}.}
+
+\item{storey_args}{Named list. Additional arguments passed to \code{qvalue::qvalue()}.}
+
+\item{verbose}{Logical. Whether to print informative messages. Defaults to \code{TRUE}.}
 }
 \value{
 A modified \code{dana} object with new columns in the \verb{$fit} and \verb{$lrt} data frames
@@ -81,8 +91,7 @@ class(dana_obj) <- "dana"
 
 # Add adjusted P-values
 dana_obj <- dana_obj |>
-  adjust_pval(dana_obj,
-              padj_method = c("BH", "bonferroni"),
+  adjust_pval(padj_method = c("BH", "bonferroni"),
               padj_method_LRT = NULL,
               padj_by = "terms",
               verbose = FALSE)
@@ -92,6 +101,6 @@ dana_obj <- dana_obj |>
 \itemize{
 \item \code{\link[=dana]{dana()}} for fitting differential analysis models on omics datasets.
 \item \code{\link[IHW:ihw.default]{IHW::ihw()}} for inverted hypothesis weighting method details.
-\item \code{\link[qvalue:qvalue]{qvalue::qvalue()}} for qvalue method details.
+\item \code{\link[qvalue:qvalue]{qvalue::qvalue()}} for Storey's qvalue method details.
 }
 }

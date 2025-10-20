@@ -55,7 +55,7 @@ test_that("adjust_pval supports global (all-term) adjustment", {
   expect_true(all(is.numeric(result$fit$padj_BH), na.rm = TRUE))
 })
 
-test_that("adjust_pval falls back to BH if storey fails", {
+test_that("adjust_pval issues a warning if storey fails", {
   skip_if_not_installed("qvalue")
   set.seed(123)
   feat_ids <- paste0("feat_", 1:4)
@@ -79,8 +79,9 @@ test_that("adjust_pval falls back to BH if storey fails", {
 
   expect_warning(
     adjust_pval(dana_obj, padj_method = "storey", verbose = FALSE),
-    "qvalue failed; falling back to BH"
+    "storey failed"
   )
+  expect_true(all(is.na(dana_obj$fit[["padj_storey_group"]])))
 })
 
 test_that("adjust_pval adds LRT-adjusted p-values and maps them to dana_obj$fit", {
@@ -184,3 +185,56 @@ test_that("adjust_pval excludes random effect LRT terms from merging into fit", 
   expect_type(dana_out$fit$padj_BH_group_LRT, "double")
 })
 
+test_that("adjust_pval applies IHW correctly and adds padj_IHW columns", {
+  skip_if_not_installed("IHW")
+
+  set.seed(123)
+  feat_ids <- paste0("feat_", 1:5)
+  coef_terms <- c("(Intercept)", "groupB")
+
+  # Mock dana object
+  dana_obj <- list(
+    X = matrix(rnorm(50), nrow = 10, dimnames = list(paste0("s", 1:10), feat_ids)),
+    sdata = data.frame(
+      sample_id = paste0("s", 1:10),
+      group = rep(c("A", "B"), each = 5)
+    ),
+    formula_rhs = ~ group,
+    fit = data.frame(
+      feat_id = rep(feat_ids, each = 2),
+      Coefficient = rep(coef_terms, times = length(feat_ids)),
+      Estimate = rnorm(length(feat_ids) * 2),
+      `Pr(>|t|)` = runif(length(feat_ids) * 2),
+      stringsAsFactors = FALSE
+    ),
+    lrt = data.frame(),
+    ranef = data.frame()
+  )
+  class(dana_obj) <- "dana"
+
+  # Mock covariate data frame for IHW
+  ihw_covar <- data.frame(
+    feat_id = feat_ids,
+    mean_intensity = runif(length(feat_ids), 1, 10)
+  )
+
+  # Run IHW-adjusted p-values
+  result <- adjust_pval(
+    dana_obj,
+    padj_method = "IHW",
+    padj_by = "terms",
+    ihw_covar = ihw_covar,
+    ihw_covar_id = "mean_intensity",
+    ihw_args = list(alpha = 0.1),  # Example user arg
+    verbose = FALSE
+  )
+
+  # Check that new IHW-adjusted column exists
+  expect_true("padj_IHW_groupB" %in% colnames(result$fit))
+
+  # Values should be numeric
+  expect_type(result$fit$padj_IHW_groupB, "double")
+
+  # Non-intercept coefficients should have non-NA padj values
+  expect_true(any(!is.na(result$fit$padj_IHW_groupB)))
+})

@@ -1,6 +1,10 @@
+# readyomics 0.2.0
+
+- Added `adjust_pval()` arguments for `IHW::ihw()` and `qvalue::qvalue()`.
+
 # readyomics 0.1.2
 
-- `draw_quantiles` removed from `ggplot2::geom_violin()`
+- `draw_quantiles` removed from `ggplot2::geom_violin()`.
 
 # readyomics 0.1.1
 
