@@ -56,7 +56,7 @@ test_that("ready_plots generates plots from a minimal dana object (fit analysis)
   expect_s3_class(result$plots$feat_boxplot, "ggplot")
 })
 
-test_that("ready_plots throws error if no significant features are found", {
+test_that("ready_plots throws warning if no significant features are found", {
   dana_obj <- list(
     X = matrix(rnorm(20), ncol = 2,
                dimnames = list(paste0("s", 1:10), c("feat1", "feat2"))),
@@ -80,7 +80,7 @@ test_that("ready_plots throws error if no significant features are found", {
   )
   class(dana_obj) <- "dana"
 
-  expect_error(
+  expect_warning(
     ready_plots(
       dana_obj,
       term_name = "group",

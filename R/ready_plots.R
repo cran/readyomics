@@ -160,7 +160,7 @@ ready_plots <- function(dana_obj, term_name, pval_match, alpha = 0.1,
   }
 
   if (plot_ranef && nrow(ranef_df) == 0) {
-    stop("Cannot find random effects: 'plot-ranef' is only possible for mixed-effects models.")
+    stop("Cannot find random effects: 'plot_ranef' is only possible for mixed-effects models.")
   }
 
   # P values and feature filtering
@@ -194,16 +194,14 @@ ready_plots <- function(dana_obj, term_name, pval_match, alpha = 0.1,
   fit_term <- fit_df[keep_term, , drop = FALSE]
   is_signif <- fit_term[[padj_colname]] < alpha
   n_signif <- sum(is_signif, na.rm = TRUE)
-  if (n_signif == 0 && !plot_ranef) {
-      stop("No significant results at selected ", alpha, " significance threshold.\n")
-  } else if (n_signif == 0 && plot_ranef) {
+
+  if (n_signif == 0) {
     warning("No significant results at selected ", alpha, " significance threshold. ",
-            "Only random effects will be plotted.\n")
+            "No coefficient or feature plots will be generated.\n")
     plot_coeff <- FALSE
     plot_feat <- FALSE
-  } else {
-    if (verbose) message(n_signif, " significant results found at selected ", alpha,
-                         " significance threshold.\n")
+  } else if (verbose) {
+    message(n_signif, " significant results found at selected ", alpha, " significance threshold.\n")
   }
 
   term_match <- stringr::str_split_1(term_name, pattern = ":")

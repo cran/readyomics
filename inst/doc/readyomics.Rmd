@@ -393,8 +393,8 @@ publication-ready plots:
 - Differential analysis significant coefficients (volcano, dotplot, heatmap - capped at 50 features),
 - Significant features abundance (capped at the 10 most significant, but plots for 
   specific features can be requested with `X_colnames` parameter).
-```{r, error = TRUE}
-# Generates error due to lack of significant features:
+```{r, warning = TRUE}
+# Generates warning due to lack of significant features:
 dana_asv <- dana_asv |>
   ready_plots(term_name = "groups_liver", # Formula fit term of interest
               pval_match = "groups_liver_LRT", # LRT adjusted P values will be used
@@ -403,7 +403,7 @@ dana_asv <- dana_asv |>
                                 FL_HS = "#377eb8"))
 ```
 In our example, no features were significant after multiple comparison correction.
-This prompts an error message from `ready_plots()` which halts execution.
+This prompts a warning message from `ready_plots()` which returns the `dana` object with an empty plots list.
 This is somewhat expected as we are using a small portion of the original dataset 
 as a toy example.
 

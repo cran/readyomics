@@ -125,7 +125,7 @@ adjust_pval <- function(dana_obj, padj_by = c("all", "terms"),
 
     if (inherits(adj_vals, "try-error")) {
       warning(paste(i, "failed for all or some variables.\n"))
-      adj_vals <- NA
+      adj_vals <- NA_real_
     }
 
     return(adj_vals)
@@ -139,7 +139,7 @@ adjust_pval <- function(dana_obj, padj_by = c("all", "terms"),
     p_nominal_include <- dana_obj$fit[[p_nominal]][p_include]
     for (i in padj_method) {
       padj_label <- paste("padj", i, sep = "_")
-      dana_obj$fit[[padj_label]] <- NA
+      dana_obj$fit[[padj_label]] <- NA_real_
       ihw_args_i <- ihw_args
       if (i == "IHW") {
         # Match feature-associated covariable used for IHW to P value
@@ -160,7 +160,7 @@ adjust_pval <- function(dana_obj, padj_by = c("all", "terms"),
       p_nominal_include <- dana_obj$fit[[p_nominal]][p_include]
       for (i in padj_method) {
         padj_label <- paste("padj", i, t, sep = "_")
-        dana_obj$fit[[padj_label]] <- NA
+        dana_obj$fit[[padj_label]] <- NA_real_
         ihw_args_i <- ihw_args
         if (i == "IHW") {
           # Match feature-associated covariable used for IHW to P value
@@ -187,7 +187,7 @@ adjust_pval <- function(dana_obj, padj_by = c("all", "terms"),
       p_nominal_lrt_include <- dana_obj$lrt[[p_nominal_lrt]][p_include]
       for (i in padj_method_LRT) {
         padj_label <- paste("padj", i, l, sep = "_")
-        dana_obj$lrt[[padj_label]] <- NA
+        dana_obj$lrt[[padj_label]] <- NA_real_
         ihw_args_i <- ihw_args
         if (i == "IHW") {
           # Match feature-associated covariable used for IHW to P value
@@ -216,9 +216,11 @@ adjust_pval <- function(dana_obj, padj_by = c("all", "terms"),
                                                     if (term_n == 1) {
                                                       # Main effect LRT P value
                                                       if (!grepl(":", coeff_id) && grepl(term_match[1], coeff_id)) {
-                                                        dana_obj$lrt[[padj_LRT]][dana_obj$lrt$feat_id == feat_id &
-                                                                                   dana_obj$lrt$term == term_match[1] &
-                                                                                   !is.na(dana_obj$lrt[[padj_LRT]])]
+                                                        values <- dana_obj$lrt[[padj_LRT]][dana_obj$lrt$feat_id == feat_id &
+                                                                                           dana_obj$lrt$term == term_match[1] &
+                                                                                          !is.na(dana_obj$lrt[[padj_LRT]])]
+                                                        if (length(values) == 0) NA_real_ else values # Failed methods are all NA
+
                                                       } else if (grepl(":", coeff_id) && grepl(term_match[1], coeff_id)) {
                                                         # Add LRT P values from associated interaction terms if any
                                                         coeff_match <- stringr::str_split_1(coeff_id, pattern = ":")
@@ -235,22 +237,23 @@ adjust_pval <- function(dana_obj, padj_by = c("all", "terms"),
                                                           dana_obj$lrt[[padj_LRT]][dana_obj$lrt$feat_id == feat_id &
                                                                                      dana_obj$lrt$term == term_final]
                                                         } else {
-                                                          NA
+                                                          NA_real_
                                                         }
                                                       } else {
-                                                        NA
+                                                        NA_real_
                                                       }
                                                     } else if (term_n == 2) {
                                                       # Interaction term LRT P value
                                                       if (grepl(":", coeff_id) && grepl(paste0(term_match[1], ".*", term_match[2]), coeff_id)) {
-                                                        dana_obj$lrt[[padj_LRT]][dana_obj$lrt$feat_id == feat_id &
-                                                                                   dana_obj$lrt$term == t &
-                                                                                   !is.na(dana_obj$lrt[[padj_LRT]])]
+                                                        values <- dana_obj$lrt[[padj_LRT]][dana_obj$lrt$feat_id == feat_id &
+                                                                                           dana_obj$lrt$term == t &
+                                                                                          !is.na(dana_obj$lrt[[padj_LRT]])]
+                                                      if (length(values) == 0) NA_real_ else values # Failed methods are all NA
                                                       } else {
-                                                        NA
+                                                        NA_real_
                                                       }
                                                     } else {
-                                                      NA
+                                                      NA_real_
                                                     }
                                                   })
         }

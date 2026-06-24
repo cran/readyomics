@@ -121,7 +121,7 @@ dana <- function(X, sample_data, formula_rhs, term_LRT = NULL,
   feat_num <- ncol(X_matched)
 
   # Determine model type
-  rand_eff <- lme4::findbars(formula_rhs)
+  rand_eff <- reformulas::findbars(formula_rhs)
   has_ranef <- length(rand_eff) > 0
   fit_model <- if (has_ranef) lmerTest::lmer else stats::lm
   if (verbose) message("Using model: ", if (has_ranef) "lmerTest::lmer" else "stats::lm.\n")
@@ -179,7 +179,7 @@ dana <- function(X, sample_data, formula_rhs, term_LRT = NULL,
                           model_args_null <- utils::modifyList(model_args_temp,
                                                                list(formula = formula_null))
                           # Test for random effects to choose null model
-                          rand_eff_null <- lme4::findbars(formula_null)
+                          rand_eff_null <- reformulas::findbars(formula_null)
                           has_ranef_null <- length(rand_eff_null) > 0
                           fit_model_null <- if (has_ranef_null) lmerTest::lmer else stats::lm
                           model_null <- do.call(fit_model_null, model_args_null)

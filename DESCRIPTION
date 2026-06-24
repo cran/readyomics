@@ -2,7 +2,7 @@ Package: readyomics
 Type: Package
 Title: Ready-to-Use Omics Formatting, Analysis, and Visualization
         Pipeline
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: 
     c(
       person(given = "Laura", 
@@ -20,22 +20,22 @@ Description:
     with customizable components for statistical modeling.
 License: MIT + file LICENSE
 Encoding: UTF-8
-RoxygenNote: 7.3.3
 Depends: R (>= 4.1.0)
 Imports: dplyr, future, future.apply, ggplot2, lme4, lmerTest, methods,
         permute, rlang, stats, stringr, tidyr, utils, vegan,
         zCompositions
 Suggests: ape, data.table, ggrepel, ggridges, IHW, imputeLCMD, knitr,
-        phyloseq, progressr, purrr, qvalue, rmarkdown, ropls, scales,
-        testthat (>= 3.0.0)
+        phyloseq, progressr, purrr, qvalue, reformulas, rmarkdown,
+        ropls, scales, testthat (>= 3.0.0)
 BugReports: https://github.com/lmartinezgili/readyomics/issues
 URL: https://lmartinezgili.github.io/readyomics/,
         https://github.com/lmartinezgili/readyomics
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2025-10-20 09:28:17 UTC; laura
+Packaged: 2026-06-24 22:06:13 UTC; laura
 Author: Laura Martinez-Gili [cre, aut, cph]
 Maintainer: Laura Martinez-Gili <martinez.gili.laura@gmail.com>
 Repository: CRAN
-Date/Publication: 2025-10-20 09:40:08 UTC
+Date/Publication: 2026-06-24 22:30:02 UTC

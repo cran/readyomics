@@ -109,7 +109,7 @@ result <- permanova(
 \seealso{
 \itemize{
 \item \code{\link[stats:dist]{stats::dist()}} and \code{\link[vegan:vegdist]{vegan::vegdist()}} for information on available distances.
-\item \code{\link[vegan:adonis]{vegan::adonis2()}} and \code{\link[permute:shuffleSet]{permute::shuffleSet()}} for control options and details.
+\item \code{\link[vegan:adonis2]{vegan::adonis2()}} and \code{\link[permute:shuffleSet]{permute::shuffleSet()}} for control options and details.
 \item \code{\link[=process_ngs]{process_ngs()}} to pre-process and normalize an \code{X} NGS dataset.
 \item \code{\link[=process_ms]{process_ms()}} to pre-process and normalize an \code{X} MS dataset.
 }

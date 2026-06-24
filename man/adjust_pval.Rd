@@ -100,7 +100,7 @@ dana_obj <- dana_obj |>
 \seealso{
 \itemize{
 \item \code{\link[=dana]{dana()}} for fitting differential analysis models on omics datasets.
-\item \code{\link[IHW:ihw.default]{IHW::ihw()}} for inverted hypothesis weighting method details.
+\item \code{\link[IHW:ihw]{IHW::ihw()}} for inverted hypothesis weighting method details.
 \item \code{\link[qvalue:qvalue]{qvalue::qvalue()}} for Storey's qvalue method details.
 }
 }

@@ -1,3 +1,7 @@
+# readyomics 0.2.1
+
+- `ready_plots()` returns empty plot list instead of error when no significant results found.
+
 # readyomics 0.2.0
 
 - Added `adjust_pval()` arguments for `IHW::ihw()` and `qvalue::qvalue()`.
